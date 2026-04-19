@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jyotish Ārambha — Calculator</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="icon" href="assets/mark.svg">
+<style>
+  html,body{min-height:100vh;position:relative}
+  body{background:var(--void);overflow-x:hidden}
+
+  /* ---- Animated starfield ---- */
+  .starfield-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+  .star-layer{position:absolute;inset:-10%;background-repeat:repeat}
+  .layer-1{
+    background-image:
+      radial-gradient(1px 1px at 17% 23%,#ffffffaa 50%,transparent 100%),
+      radial-gradient(1px 1px at 68% 71%,#ffffff88 50%,transparent 100%),
+      radial-gradient(1.2px 1.2px at 42% 13%,#ffffff99 50%,transparent 100%),
+      radial-gradient(1px 1px at 83% 47%,#6ff6ff99 50%,transparent 100%),
+      radial-gradient(1px 1px at 12% 82%,#a78bff99 50%,transparent 100%),
+      radial-gradient(1.3px 1.3px at 55% 35%,#ffffffaa 50%,transparent 100%),
+      radial-gradient(1px 1px at 29% 64%,#ff5de088 50%,transparent 100%),
+      radial-gradient(1px 1px at 91% 88%,#ffffff99 50%,transparent 100%);
+    background-size: 600px 600px;
+    animation: drift-slow 180s linear infinite;
+    opacity:0.9;
+  }
+  .layer-2{
+    background-image:
+      radial-gradient(1.5px 1.5px at 30% 50%,#ffd24bbb 50%,transparent 100%),
+      radial-gradient(1.5px 1.5px at 75% 20%,#6ff6ffbb 50%,transparent 100%),
+      radial-gradient(2px 2px at 20% 80%,#ffffff 50%,transparent 100%),
+      radial-gradient(1.5px 1.5px at 60% 60%,#ff5de0aa 50%,transparent 100%);
+    background-size: 900px 900px;
+    animation: drift-slow 120s linear infinite reverse, twinkle 4s ease-in-out infinite;
+    opacity:0.85;
+  }
+  .layer-3{
+    background:radial-gradient(ellipse at 20% 10%,rgba(111,246,255,0.08),transparent 55%),
+               radial-gradient(ellipse at 85% 85%,rgba(255,93,224,0.06),transparent 55%),
+               radial-gradient(ellipse at 50% 50%,rgba(167,139,255,0.04),transparent 60%);
+    animation:nebula-shift 40s ease-in-out infinite alternate;
+  }
+  @keyframes drift-slow{
+    from{transform:translate3d(0,0,0)}
+    to{transform:translate3d(-600px,-300px,0)}
+  }
+  @keyframes twinkle{
+    0%,100%{filter:brightness(1)}
+    50%{filter:brightness(1.6)}
+  }
+  @keyframes nebula-shift{
+    0%{transform:translate3d(0,0,0) scale(1)}
+    100%{transform:translate3d(3%,-2%,0) scale(1.05)}
+  }
+
+  /* Shooting star */
+  .shooting{position:absolute;width:100px;height:1px;background:linear-gradient(90deg,transparent,#6ff6ff,#ffffff);box-shadow:0 0 8px #6ff6ffcc,0 0 2px #fff;opacity:0;animation:shoot 12s ease-out infinite;transform-origin:0 0}
+  .shooting.s1{top:20%;left:-10%;animation-delay:0s}
+  .shooting.s2{top:60%;left:-10%;animation-delay:5s;background:linear-gradient(90deg,transparent,#ff5de0,#ffffff)}
+  .shooting.s3{top:40%;left:-10%;animation-delay:9s;background:linear-gradient(90deg,transparent,#ffd24b,#ffffff)}
+  @keyframes shoot{
+    0%{opacity:0;transform:translate(0,0) rotate(20deg)}
+    3%{opacity:1}
+    12%{opacity:1;transform:translate(120vw,40vh) rotate(20deg)}
+    13%,100%{opacity:0;transform:translate(120vw,40vh) rotate(20deg)}
+  }
+
+  .wrap{max-width:1280px;margin:0 auto;padding:0 28px 48px;position:relative;z-index:1}
+  .grid{display:grid;grid-template-columns:1fr;gap:28px}
+  @media(min-width:1000px){.grid{grid-template-columns:1.35fr 1fr}}
+  .legend{font-size:11px;color:var(--fg-3);margin-top:10px;line-height:1.5;max-width:46ch}
+  .legend sup{font-size:9px}
+  .controls{display:flex;gap:10px;margin:6px 0 18px;flex-wrap:wrap}
+  @keyframes pulse-gold{0%,100%{box-shadow:0 0 12px var(--gold-a20)}50%{box-shadow:0 0 22px var(--gold-a40)}}
+
+  /* ---- Rāśi chart orbit rings ---- */
+  .chart-wrap{position:relative}
+  .orbit-stage{position:absolute;inset:-40px;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+  .orbit-svg{width:100%;height:100%;max-width:640px;max-height:640px}
+  .orbit-ring{fill:none;stroke-opacity:0.35}
+  .orbit-ring.r1{stroke:#6ff6ff;stroke-width:0.6;stroke-dasharray:2 6;animation:spin 120s linear infinite}
+  .orbit-ring.r2{stroke:#a78bff;stroke-width:0.5;stroke-dasharray:1 3;animation:spin 80s linear infinite reverse}
+  .orbit-ring.r3{stroke:#ff5de0;stroke-width:0.4;stroke-dasharray:4 10;animation:spin 200s linear infinite}
+  .orbit-node{fill:#6ff6ff;filter:drop-shadow(0 0 4px #6ff6ff)}
+  .orbit-node.n2{fill:#ff5de0;filter:drop-shadow(0 0 4px #ff5de0)}
+  .orbit-node.n3{fill:#ffd24b;filter:drop-shadow(0 0 5px #ffd24b)}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .orbit-group{transform-origin:center;transform-box:fill-box}
+
+  .chart-inner{position:relative;z-index:1}
+
+  /* ---- Lagna pulse ---- */
+  @keyframes lagna-pulse{
+    0%,100%{text-shadow:0 0 6px #ff5de0aa,0 0 1px #ff5de0}
+    50%{text-shadow:0 0 22px #ff5de0,0 0 4px #ffffff,0 0 40px #ff5de099}
+  }
+  @keyframes lagna-ring-pulse{
+    0%,100%{box-shadow:inset 0 0 0 1.5px var(--glow-magenta),inset 0 0 16px rgba(255,93,224,0.15),0 0 20px rgba(255,93,224,0.25)}
+    50%{box-shadow:inset 0 0 0 2px var(--glow-magenta),inset 0 0 32px rgba(255,93,224,0.35),0 0 36px rgba(255,93,224,0.45)}
+  }
+  .lagna-cell{animation:lagna-ring-pulse 2.8s var(--ease-in-out) infinite !important}
+  .lagna-glyph{animation:lagna-pulse 2.8s var(--ease-in-out) infinite}
+
+  /* input focus */
+  input:focus,select:focus{border-color:var(--glow-cyan)!important;box-shadow:0 0 0 2px var(--cyan-a40)!important}
+  button{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="starfield-bg">
+  <div class="star-layer layer-3"></div>
+  <div class="star-layer layer-1"></div>
+  <div class="star-layer layer-2"></div>
+  <div class="shooting s1"></div>
+  <div class="shooting s2"></div>
+  <div class="shooting s3"></div>
+</div>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="env,react">
+/* ============================================================
+   Primitives — domain constants, math, Glyph, SignGlyph, Pill, Button
+   ============================================================ */
+const { useState, useMemo, useEffect } = React;
+
+const SIGNS = [
+  { abbr: 'Ar', name: 'Aries',       sym: '\u2648' },
+  { abbr: 'Ta', name: 'Taurus',      sym: '\u2649' },
+  { abbr: 'Ge', name: 'Gemini',      sym: '\u264A' },
+  { abbr: 'Cn', name: 'Cancer',      sym: '\u264B' },
+  { abbr: 'Le', name: 'Leo',         sym: '\u264C' },
+  { abbr: 'Vi', name: 'Virgo',       sym: '\u264D' },
+  { abbr: 'Li', name: 'Libra',       sym: '\u264E' },
+  { abbr: 'Sc', name: 'Scorpio',     sym: '\u264F' },
+  { abbr: 'Sg', name: 'Sagittarius', sym: '\u2650' },
+  { abbr: 'Cp', name: 'Capricorn',   sym: '\u2651' },
+  { abbr: 'Aq', name: 'Aquarius',    sym: '\u2652' },
+  { abbr: 'Pi', name: 'Pisces',      sym: '\u2653' }
+];
+const SIGN_INDEX = Object.fromEntries(SIGNS.map((s, i) => [s.abbr, i]));
+const NAVAMSA_OFFSET = [0, 8, 4, 0, 8, 4, 0, 8, 4, 0, 8, 4];
+const NAKSHATRAS = [
+  'Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra',
+  'Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni',
+  'Uttara Phalguni','Hasta','Chitra','Swati','Vishakha',
+  'Anuradha','Jyeshta','Mula','Purva Ashadha','Uttara Ashadha',
+  'Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada',
+  'Uttara Bhadrapada','Revati'
+];
+const LORD_CYCLE = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+const LORD_SHORT = {Ketu:'Ke',Venus:'Ve',Sun:'Su',Moon:'Mo',Mars:'Ma',Rahu:'Ra',Jupiter:'Ju',Saturn:'Sa',Mercury:'Me'};
+const NAK_LEN = 360/27;
+const PADA_LEN = NAK_LEN/4;
+
+const PLANETS = {
+  Sun: { sym:'\u2609', short:'Su', color:'var(--glow-gold)', shadow:'var(--glow-gold-md)' },
+  Moon:{ sym:'\u263D', short:'Mo', color:'var(--glow-cyan)', shadow:'var(--glow-cyan-md)' },
+  Mars:{ sym:'\u2642', short:'Ma', color:'var(--glow-ember)', shadow:'0 0 12px #ff8a5b99,0 0 3px #ff8a5bcc' },
+  'Mercury(R)':{sym:'\u263F',short:'Me(R)',color:'var(--glow-lime)',shadow:'0 0 12px #9dff6f99,0 0 3px #9dff6fcc'},
+  Mercury:{sym:'\u263F',short:'Me',color:'var(--glow-lime)',shadow:'0 0 12px #9dff6f99'},
+  Jupiter:{sym:'\u2643',short:'Ju',color:'var(--glow-gold)',shadow:'var(--glow-gold-md)'},
+  Venus:{sym:'\u2640',short:'Ve',color:'var(--glow-magenta)',shadow:'var(--glow-magenta-md)'},
+  Saturn:{sym:'\u2644',short:'Sa',color:'var(--glow-violet)',shadow:'var(--glow-violet-md)'},
+  Rahu:{sym:'\u260A',short:'Ra',color:'var(--glow-violet)',shadow:'var(--glow-violet-md)'},
+  Ketu:{sym:'\u260B',short:'Ke',color:'var(--glow-ember)',shadow:'0 0 12px #ff8a5b99'},
+  Lagna:{sym:'La',short:'La',color:'var(--glow-magenta)',shadow:'var(--glow-magenta-md)'}
+};
+
+const dmsToDeg = (d,m,s) => d + m/60 + s/3600;
+const totalLon = (b) => SIGN_INDEX[b.sign]*30 + dmsToDeg(b.deg,b.min,b.sec);
+function calc(body){
+  const lon = totalLon(body);
+  const nakIdx = Math.floor(lon/NAK_LEN);
+  const padaInNak = Math.floor((lon - nakIdx*NAK_LEN)/PADA_LEN);
+  const signIdx = SIGN_INDEX[body.sign];
+  const degInSign = dmsToDeg(body.deg,body.min,body.sec);
+  const padaInSign = Math.floor(degInSign/PADA_LEN);
+  const navIdx = (signIdx + NAVAMSA_OFFSET[signIdx] + padaInSign) % 12;
+  return {
+    longitude: lon,
+    nakshatra: NAKSHATRAS[nakIdx],
+    nakLord: LORD_CYCLE[nakIdx % 9],
+    pada: padaInNak + 1,
+    navamsaSign: SIGNS[navIdx],
+    signIndex: signIdx,
+    nakIdx
+  };
+}
+function nakshatrasInSign(signIdx){
+  const signStart = signIdx*30, signEnd = signStart+30;
+  const blocks = []; let cur = null;
+  for (let n=0; n<27; n++){
+    for (let k=0; k<4; k++){
+      const ps = n*NAK_LEN + k*PADA_LEN, pe = ps + PADA_LEN;
+      if (pe <= signStart || ps >= signEnd) continue;
+      if (!cur || cur.nakIdx !== n){
+        cur = { nakIdx:n, nakshatra:NAKSHATRAS[n], lord:LORD_CYCLE[n%9], padas:[] };
+        blocks.push(cur);
+      }
+      cur.padas.push({ pada:k+1, startInSign:Math.max(ps,signStart)-signStart, endInSign:Math.min(pe,signEnd)-signStart });
+    }
+  }
+  return blocks;
+}
+function fmtInSign(x){
+  const totalMin = Math.round(x*60);
+  const d = Math.floor(totalMin/60), m = totalMin - d*60;
+  return `${d}°${m.toString().padStart(2,'0')}′`;
+}
+
+const DEFAULT_BODIES = [
+  { key:'Lagna',       deg:9,  sign:'Sg', min:19, sec:52.29 },
+  { key:'Sun',         deg:14, sign:'Ge', min:28, sec:43.61 },
+  { key:'Moon',        deg:19, sign:'Sg', min:31, sec:45.25 },
+  { key:'Mars',        deg:6,  sign:'Ta', min:58, sec:6.57  },
+  { key:'Mercury(R)',  deg:2,  sign:'Cn', min:1,  sec:24.61 },
+  { key:'Jupiter',     deg:5,  sign:'Cn', min:50, sec:23.77 },
+  { key:'Venus',       deg:25, sign:'Cn', min:22, sec:19.63 },
+  { key:'Saturn',      deg:19, sign:'Pi', min:57, sec:7.83  },
+  { key:'Rahu',        deg:8,  sign:'Aq', min:24, sec:7.57  },
+  { key:'Ketu',        deg:8,  sign:'Le', min:24, sec:7.57  }
+];
+
+function Glyph({ planet, size = 18 }) {
+  const p = PLANETS[planet] || { sym: planet, color:'var(--fg-1)', shadow:'none' };
+  return <span className="symbol" style={{ color: p.color, textShadow: p.shadow, fontSize: size }}>{p.sym}</span>;
+}
+function SignGlyph({ abbr, size = 16, color = 'var(--glow-cyan)' }) {
+  const s = SIGNS[SIGN_INDEX[abbr]];
+  return <span className="symbol" style={{ color, textShadow:'var(--glow-cyan-md)', fontSize: size }}>{s.sym}</span>;
+}
+function Pill({ children, tone = 'default' }) {
+  const tones = {
+    default: { c:'var(--fg-2)', b:'var(--color-border)', t:'none' },
+    cyan:    { c:'var(--glow-cyan)', b:'var(--glow-cyan)', t:'var(--glow-cyan-sm)' },
+    gold:    { c:'var(--glow-gold)', b:'var(--glow-gold)', t:'var(--glow-gold-md)' },
+    magenta: { c:'var(--glow-magenta)', b:'var(--glow-magenta)', t:'var(--glow-magenta-md)' },
+    violet:  { c:'var(--glow-violet)', b:'var(--glow-violet)', t:'var(--glow-violet-md)' },
+    lime:    { c:'var(--glow-lime)', b:'var(--glow-lime)', t:'0 0 10px #9dff6f66' }
+  };
+  const t = tones[tone] || tones.default;
+  return <span style={{
+    display:'inline-flex',alignItems:'center',gap:6,padding:'3px 9px',
+    background:'var(--nebula)', border:`1px solid ${t.b}`, borderRadius:999,
+    fontSize:11, color:t.c, fontFamily:'var(--font-mono)', textShadow:t.t,
+    letterSpacing:'0.04em'
+  }}>{children}</span>;
+}
+function Button({ variant = 'secondary', children, onClick, icon }) {
+  const styles = {
+    primary:   { bg:'var(--nebula-2)', color:'var(--glow-cyan)', border:'var(--glow-cyan)', shadow:'var(--glow-cyan-sm), inset 0 1px 0 rgba(255,255,255,0.05)', text:'var(--glow-cyan-sm)' },
+    secondary: { bg:'var(--nebula)', color:'var(--fg-1)', border:'var(--color-border-strong)', shadow:'none', text:'none' },
+    ghost:     { bg:'transparent', color:'var(--fg-2)', border:'var(--color-border)', shadow:'none', text:'none' }
+  };
+  const s = styles[variant];
+  return <button onClick={onClick} style={{
+    fontFamily:'inherit', fontSize:13, fontWeight:600, letterSpacing:'0.04em',
+    padding:'8px 14px', borderRadius:'var(--r-sm)',
+    background:s.bg, color:s.color, border:`1px solid ${s.border}`,
+    boxShadow:s.shadow, textShadow:s.text, cursor:'pointer',
+    display:'inline-flex', alignItems:'center', gap:8,
+    transition:'all var(--dur-fast) var(--ease-out)'
+  }}>
+    {icon && <span className="symbol" style={{fontSize:14}}>{icon}</span>}
+    {children}
+  </button>;
+}
+
+/* ============================================================
+   Chrome — TopBar, Tabs, SectionHead
+   ============================================================ */
+function TopBar() {
+  return <header style={{
+    display:'flex',alignItems:'center',gap:14,
+    padding:'14px 28px',
+    borderBottom:'1px solid var(--color-border)',
+    background:'rgba(11,13,26,0.7)',
+    backdropFilter:'blur(12px)',
+    position:'sticky', top:0, zIndex:100
+  }}>
+    <div className="symbol" style={{fontSize:32,color:'var(--glow-gold)',textShadow:'var(--glow-gold-md)',lineHeight:1}}>☉</div>
+    <div>
+      <div style={{fontFamily:'var(--font-display)',fontStyle:'italic',fontWeight:600,fontSize:22,color:'var(--fg-1)',lineHeight:1}}>Jyotiṣa </div>
+      <div style={{fontFamily:'var(--font-sans)',fontSize:10,fontWeight:500,letterSpacing:'0.28em',color:'var(--glow-cyan)',textShadow:'var(--glow-cyan-sm)',marginTop:3}}>ĀRAMBHA</div>
+    </div>
+    <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
+      <Pill tone="violet">Assignment #10</Pill>
+      <Pill>v. 1.0</Pill>
+    </div>
+  </header>;
+}
+
+function Tabs({ active, onChange }) {
+  const items = [
+    { id:'calc', label:'Q1 Calculator', sym:'\u2609' },
+    { id:'ref',  label:'Nakshatra & Pada Reference', sym:'\u2652' }
+  ];
+  return <div style={{ display:'flex',gap:0,borderBottom:'1px solid var(--color-border)',marginBottom:22 }}>
+    {items.map(it => {
+      const isActive = it.id === active;
+      return <button key={it.id} onClick={()=>onChange(it.id)} style={{
+        padding:'12px 20px', fontSize:13, fontWeight:600,
+        color: isActive ? 'var(--glow-cyan)' : 'var(--fg-3)',
+        background:'transparent', cursor:'pointer',
+        textShadow: isActive ? 'var(--glow-cyan-sm)' : 'none',
+        letterSpacing:'0.04em', display:'inline-flex', alignItems:'center', gap:8,
+        marginBottom:-1, border:'none', borderBottom:'2px solid ' + (isActive ? 'var(--glow-cyan)' : 'transparent'),
+        transition:'all var(--dur-fast) var(--ease-out)', fontFamily:'inherit'
+      }}>
+        <span className="symbol" style={{fontSize:15}}>{it.sym}</span>
+        {it.label}
+      </button>;
+    })}
+  </div>;
+}
+
+function SectionHead({ eyebrow, title, right }) {
+  return <div style={{ display:'flex',alignItems:'baseline',gap:12,marginBottom:10 }}>
+    <div>
+      <div className="eyebrow">{eyebrow}</div>
+      <div style={{fontFamily:'var(--font-display)',fontWeight:600,fontSize:22,color:'var(--fg-1)',marginTop:2,fontStyle:'italic'}}>{title}</div>
+    </div>
+    {right && <div style={{marginLeft:'auto'}}>{right}</div>}
+  </div>;
+}
+
+/* ============================================================
+   InputTable
+   ============================================================ */
+const tdStyle = () => ({ padding:'6px 10px', borderBottom:'1px solid var(--color-border)', verticalAlign:'middle', color:'var(--fg-1)' });
+const thStyle = () => ({ padding:'9px 10px', textAlign:'left', background:'var(--orbit)', color:'var(--glow-cyan)', fontSize:10, fontWeight:600, letterSpacing:'0.14em', textTransform:'uppercase', textShadow:'var(--glow-cyan-sm)', borderBottom:'1px solid var(--color-border-strong)' });
+const numInputStyle = { width:'100%', padding:'5px 7px', background:'var(--space)', color:'var(--fg-1)', border:'1px solid var(--color-border)', borderRadius:'var(--r-sm)', fontFamily:'var(--font-mono)', fontSize:12, fontVariantNumeric:'tabular-nums', outline:'none' };
+const selectStyle = { width:'100%', padding:'5px 7px', background:'var(--space)', color:'var(--fg-1)', border:'1px solid var(--color-border)', borderRadius:'var(--r-sm)', fontFamily:'var(--font-sans)', fontSize:12, outline:'none' };
+const NumInput = ({value, min, max, step, onChange}) => (
+  <input type="number" value={value} min={min} max={max} step={step}
+    onChange={e => onChange(parseFloat(e.target.value||0))}
+    style={numInputStyle}/>
+);
+
+function InputTable({ bodies, onChange }) {
+  return <div className="surface" style={{ overflow:'hidden', borderRadius:'var(--r-md)' }}>
+    <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0, fontSize:12, background:'var(--nebula)' }}>
+      <thead><tr>
+        {['Body','Deg','Sign','Min','Sec','Decimal Longitude'].map(h =>
+          <th key={h} style={thStyle()}>{h}</th>
+        )}
+      </tr></thead>
+      <tbody>
+        {bodies.map((b,i) => (
+          <tr key={b.key} style={{ borderBottom:'1px solid var(--color-border)' }}>
+            <td style={tdStyle()}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <Glyph planet={b.key} size={16}/>
+                <span style={{fontWeight:600,color:'var(--fg-1)'}}>{b.key}</span>
+              </div>
+            </td>
+            <td style={tdStyle()}><NumInput value={b.deg} min={0} max={29} step={1} onChange={v=>onChange(i,'deg',v)}/></td>
+            <td style={tdStyle()}>
+              <select value={b.sign} onChange={e => onChange(i,'sign',e.target.value)} style={selectStyle}>
+                {SIGNS.map(s => <option key={s.abbr} value={s.abbr}>{`${s.sym} ${s.abbr} — ${s.name}`}</option>)}
+              </select>
+            </td>
+            <td style={tdStyle()}><NumInput value={b.min} min={0} max={59} step={1} onChange={v=>onChange(i,'min',v)}/></td>
+            <td style={tdStyle()}><NumInput value={b.sec} min={0} max={59.99} step={0.01} onChange={v=>onChange(i,'sec',v)}/></td>
+            <td style={{...tdStyle(),textAlign:'right',fontFamily:'var(--font-mono)',color:'var(--fg-2)',fontVariantNumeric:'tabular-nums'}}>
+              {totalLon(b).toFixed(4)}°
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>;
+}
+
+/* ============================================================
+   ResultTable
+   ============================================================ */
+const tdStyle2 = () => ({ padding:'8px 10px', color:'var(--fg-1)', verticalAlign:'middle' });
+const tdMono = () => ({ ...tdStyle2(), fontFamily:'var(--font-mono)', fontSize:12, color:'var(--fg-2)', fontVariantNumeric:'tabular-nums' });
+
+function ResultTable({ bodies }) {
+  const rows = bodies.map(b => ({ b, r: calc(b) }));
+  return <div style={{ overflow:'hidden', borderRadius:'var(--r-md)', border:'1px solid var(--color-border)' }}>
+    <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0, fontSize:12, background:'var(--nebula)' }}>
+      <thead><tr>
+        {['Body','Longitude','Nakshatra','Lord','Pada','Navamsa'].map(h =>
+          <th key={h} style={thStyle()}>{h}</th>
+        )}
+      </tr></thead>
+      <tbody>
+        {rows.map(({b, r}) => (
+          <tr key={b.key} style={{ borderBottom:'1px solid var(--color-border)' }}>
+            <td style={tdStyle2()}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <Glyph planet={b.key} size={16}/>
+                <span style={{color:'var(--fg-1)',fontWeight:600}}>{b.key}</span>
+              </div>
+            </td>
+            <td style={tdMono()}>{`${b.deg}° ${b.sign} ${b.min}′ ${b.sec.toFixed(2)}″`}</td>
+            <td style={tdStyle2()}>
+              <span className="sanskrit" style={{color:'var(--fg-1)'}}>{r.nakshatra}</span>
+            </td>
+            <td style={tdStyle2()}>
+              <span style={{color:'var(--glow-violet)',textShadow:'var(--glow-violet-md)',fontFamily:'var(--font-mono)',fontSize:11,letterSpacing:'0.04em'}}>
+                {`${LORD_SHORT[r.nakLord]} · ${r.nakLord}`}
+              </span>
+            </td>
+            <td style={{...tdMono(),color:'var(--glow-gold)',textShadow:'var(--glow-gold-md)',fontWeight:700}}>{r.pada}</td>
+            <td style={tdStyle2()}>
+              <span style={{display:'inline-flex',alignItems:'center',gap:6}}>
+                <SignGlyph abbr={r.navamsaSign.abbr} size={14} color="var(--glow-lime)"/>
+                <span style={{color:'var(--glow-lime)',fontSize:12,textShadow:'0 0 8px #9dff6f66'}}>{r.navamsaSign.name}</span>
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>;
+}
+
+/* ============================================================
+   RasiChart — South Indian
+   ============================================================ */
+const SI_LAYOUT = [
+  ['Pi','Ar','Ta','Ge'],
+  ['Aq', null, null,'Cn'],
+  ['Cp', null, null,'Le'],
+  ['Sg','Sc','Li','Vi']
+];
+
+function RasiChart({ bodies, selectedKey, onSelectBody }) {
+  const lagnaIdx = SIGN_INDEX[bodies[0].sign];
+  const bySign = {};
+  SIGNS.forEach(s => bySign[s.abbr] = []);
+  bodies.forEach(b => bySign[b.sign].push(b));
+
+  return <div style={{
+    display:'grid',
+    gridTemplateColumns:'repeat(4,1fr)',
+    gridTemplateRows:'repeat(4,1fr)',
+    aspectRatio:'1/1',
+    width:'100%', maxWidth:520,
+    margin:'0 auto',
+    background:'var(--nebula)',
+    border:'1.5px solid var(--color-border-strong)',
+    borderRadius:'var(--r-md)',
+    overflow:'hidden',
+    boxShadow:'var(--shadow-lg), var(--inset-top)'
+  }}>
+    {SI_LAYOUT.flatMap((row,r) => row.map((abbr,c) => {
+      if (abbr === null) {
+        if (r===1 && c===1) {
+          return <div key={`center-${r}-${c}`} style={{
+            gridColumn:'2 / span 2', gridRow:'2 / span 2',
+            display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+            gap:6, color:'var(--fg-3)',
+            background:'radial-gradient(circle,var(--nebula-2) 0%,var(--nebula) 70%)',
+            borderTop:'1px solid var(--color-border)',
+            borderBottom:'1px solid var(--color-border)',
+            borderLeft:'1px solid var(--color-border)',
+            borderRight:'1px solid var(--color-border)'
+          }}>
+            <div className="symbol" style={{fontSize:44,color:'var(--glow-cyan)',textShadow:'var(--glow-cyan-lg)',opacity:0.85}}>☉</div>
+            <div style={{fontFamily:'var(--font-display)',fontStyle:'italic',fontWeight:600,fontSize:15,color:'var(--fg-2)',letterSpacing:'0.1em'}}>Rāśi Cakra</div>
+            <div style={{fontFamily:'var(--font-mono)',fontSize:9,color:'var(--fg-3)',letterSpacing:'0.2em',textTransform:'uppercase'}}>South Indian</div>
+          </div>;
+        }
+        return null;
+      }
+      const signIdx = SIGN_INDEX[abbr];
+      const house = ((signIdx - lagnaIdx + 12) % 12) + 1;
+      const sign = SIGNS[signIdx];
+      const cellBodies = bySign[abbr];
+      const hasSelected = cellBodies.some(b => b.key === selectedKey);
+      const isLagnaCell = cellBodies.some(b => b.key === 'Lagna');
+      return <div key={abbr} className={isLagnaCell ? 'lagna-cell' : ''} style={{
+        border:'1px solid var(--color-border)',
+        padding:8, position:'relative',
+        display:'flex', flexDirection:'column', gap:4,
+        minHeight:0, overflow:'hidden', minWidth:0,
+        background: hasSelected ? 'rgba(111,246,255,0.04)' : (isLagnaCell ? 'rgba(255,93,224,0.05)' : 'transparent'),
+        boxShadow: hasSelected && !isLagnaCell ? 'inset 0 0 0 1.5px var(--glow-cyan), inset 0 0 24px rgba(111,246,255,0.1)' : 'none',
+        transition:'all var(--dur-med) var(--ease-out)'
+      }}>
+        <div style={{display:'flex',alignItems:'center',gap:4}}>
+          <span className="symbol" style={{color:'var(--glow-cyan)',textShadow:'var(--glow-cyan-md)',fontSize:13}}>{sign.sym}</span>
+          <span style={{fontFamily:'var(--font-sans)',fontSize:9,fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--fg-2)'}}>{sign.abbr}</span>
+        </div>
+        <div style={{position:'absolute',top:6,right:8,fontFamily:'var(--font-mono)',fontSize:9,color:'var(--glow-lime)',fontWeight:700,letterSpacing:'0.05em',textShadow:'0 0 6px #9dff6f66'}}>{`H${house}`}</div>
+        {cellBodies.map(b => {
+          const isSelected = b.key === selectedKey;
+          const isLagna = b.key === 'Lagna';
+          const p = PLANETS[b.key];
+          return <div key={b.key}
+            onClick={() => onSelectBody && onSelectBody(b.key)}
+            style={{
+              display:'flex',alignItems:'baseline',gap:4,
+              cursor: onSelectBody ? 'pointer' : 'default',
+              padding:'2px 4px', marginLeft:-4,
+              borderRadius:3,
+              background: isSelected ? 'rgba(255,93,224,0.12)' : 'transparent',
+              transition:'background var(--dur-fast)'
+            }}>
+            <span className={isLagna ? 'symbol lagna-glyph' : 'symbol'} style={{fontSize:14,color:p.color,textShadow:p.shadow,lineHeight:1}}>{p.sym}</span>
+            <span style={{fontSize:11,fontWeight:600,color: isLagna ? 'var(--glow-magenta)' : 'var(--fg-1)', textShadow: isLagna ? 'var(--glow-magenta-md)':'none'}}>{p.short}</span>
+            <span style={{fontFamily:'var(--font-mono)',fontSize:9,color:'var(--fg-3)',marginLeft:'auto'}}>{`${b.deg}°${b.min.toString().padStart(2,'0')}′`}</span>
+          </div>;
+        })}
+      </div>;
+    }))}
+  </div>;
+}
+
+/* ============================================================
+   LookupBar + ReferenceGrid
+   ============================================================ */
+function LookupBar({ state, setState, result }) {
+  const set = (k,v) => setState({...state,[k]:v});
+  const fieldStyle = { padding:'6px 8px', background:'var(--space)', color:'var(--fg-1)', border:'1px solid var(--color-border)', borderRadius:'var(--r-sm)', fontFamily:'var(--font-mono)', fontSize:12, outline:'none' };
+  return <div style={{ display:'flex',flexWrap:'wrap',gap:10,alignItems:'center', background:'var(--nebula)', border:'1px solid var(--color-border-strong)', padding:'12px 14px', borderRadius:'var(--r-md)', marginBottom:14 }}>
+    <span className="eyebrow" style={{marginRight:6}}>Lookup</span>
+    <input type="number" min={0} max={29} value={state.deg} onChange={e=>set('deg',parseFloat(e.target.value||0))} style={{...fieldStyle,width:60}}/>
+    <span className="caption">°</span>
+    <select value={state.sign} onChange={e=>set('sign',e.target.value)} style={{...fieldStyle,width:140}}>
+      {SIGNS.map(s => <option key={s.abbr} value={s.abbr}>{`${s.sym} ${s.abbr} — ${s.name}`}</option>)}
+    </select>
+    <input type="number" min={0} max={59} value={state.min} onChange={e=>set('min',parseFloat(e.target.value||0))} style={{...fieldStyle,width:60}}/>
+    <span className="caption">′</span>
+    <input type="number" min={0} max={59.99} step={0.01} value={state.sec} onChange={e=>set('sec',parseFloat(e.target.value||0))} style={{...fieldStyle,width:80}}/>
+    <span className="caption">″</span>
+    {result && <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+      <Pill tone="cyan">{result.nakshatra}</Pill>
+      <Pill tone="violet">{`${LORD_SHORT[result.nakLord]} · ${result.nakLord}`}</Pill>
+      <Pill tone="gold">{`Pada ${result.pada}`}</Pill>
+      <Pill tone="lime">{`Navamsa: ${result.navamsaSign.name}`}</Pill>
+    </div>}
+  </div>;
+}
+
+function ReferenceGrid({ highlight }) {
+  return <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
+    {SIGNS.map((sign, s) => {
+      const blocks = nakshatrasInSign(s);
+      const isMatchSign = highlight && highlight.signIdx === s;
+      return <div key={sign.abbr} style={{
+        background:'var(--nebula)',
+        border: isMatchSign ? '1.5px solid var(--glow-cyan)' : '1px solid var(--color-border)',
+        borderRadius:'var(--r-md)', padding:'10px 12px',
+        boxShadow: isMatchSign ? 'var(--glow-cyan-md), var(--inset-top)' : 'var(--inset-top)',
+        transition:'all var(--dur-med) var(--ease-out)'
+      }}>
+        <div style={{display:'flex',alignItems:'center',gap:8,paddingBottom:6,borderBottom:'1px solid var(--color-border)',marginBottom:8}}>
+          <span className="symbol" style={{fontSize:18,color:'var(--glow-cyan)',textShadow:'var(--glow-cyan-md)'}}>{sign.sym}</span>
+          <span style={{fontFamily:'var(--font-display)',fontStyle:'italic',fontWeight:600,fontSize:14,color:'var(--fg-1)'}}>{sign.name}</span>
+          <span style={{marginLeft:'auto',fontFamily:'var(--font-mono)',fontSize:9,color:'var(--fg-3)'}}>0°–30°</span>
+        </div>
+        {blocks.map(b =>
+          <div key={b.nakIdx} style={{marginBottom:8}}>
+            <div style={{display:'flex',alignItems:'baseline',gap:6,marginBottom:4}}>
+              <span style={{fontSize:11,fontWeight:600,color:'var(--fg-1)'}}>{b.nakshatra}</span>
+              <span style={{fontSize:10,color:'var(--glow-violet)',textShadow:'var(--glow-violet-md)',fontFamily:'var(--font-mono)'}}>{`(${LORD_SHORT[b.lord]})`}</span>
+              <span style={{marginLeft:'auto',fontFamily:'var(--font-mono)',fontSize:9,color:'var(--fg-3)'}}>{`${b.padas.length} pada${b.padas.length>1?'s':''}`}</span>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:3}}>
+              {b.padas.map(p => {
+                const match = highlight && highlight.signIdx===s && highlight.nakIdx===b.nakIdx && highlight.pada===p.pada;
+                return <div key={p.pada} style={{
+                  background: match ? 'transparent' : 'var(--orbit)',
+                  color: match ? 'var(--glow-gold)' : 'var(--fg-2)',
+                  border: match ? '1px solid var(--glow-gold)' : '1px solid transparent',
+                  textShadow: match ? 'var(--glow-gold-md)' : 'none',
+                  boxShadow: match ? '0 0 12px var(--gold-a20)' : 'none',
+                  fontFamily:'var(--font-mono)', fontSize:9,
+                  padding:'3px 4px', borderRadius:2, textAlign:'center',
+                  fontWeight: match ? 700 : 400,
+                  animation: match ? 'pulse-gold 3s var(--ease-in-out) infinite' : 'none'
+                }}>{`P${p.pada} ${fmtInSign(p.startInSign)}–${fmtInSign(p.endInSign)}`}</div>;
+              })}
+            </div>
+          </div>
+        )}
+      </div>;
+    })}
+  </div>;
+}
+
+/* ============================================================
+   App
+   ============================================================ */
+function App(){
+  const [bodies, setBodies] = useState(() => JSON.parse(JSON.stringify(DEFAULT_BODIES)));
+  const [tab, setTab] = useState('calc');
+  const [selectedKey, setSelectedKey] = useState('Moon');
+  const [lookup, setLookup] = useState({ deg:14, sign:'Ge', min:28, sec:43.61 });
+
+  const updateBody = (i, field, value) => {
+    const next = bodies.slice();
+    next[i] = { ...next[i], [field]: value };
+    setBodies(next);
+  };
+  const reset = () => setBodies(JSON.parse(JSON.stringify(DEFAULT_BODIES)));
+  const clear = () => setBodies(bodies.map(b => ({ ...b, deg:0, min:0, sec:0, sign:'Ar' })));
+
+  const lookupResult = useMemo(() => calc(lookup), [lookup]);
+  const highlight = useMemo(() => {
+    const r = lookupResult;
+    return { signIdx: SIGN_INDEX[lookup.sign], nakIdx: r.nakIdx, pada: r.pada };
+  }, [lookup, lookupResult]);
+
+  return <div>
+    <TopBar/>
+    <div className="wrap" data-screen-label="01 Calculator">
+      <Tabs active={tab} onChange={setTab}/>
+
+      {tab === 'calc' && <div>
+        <div className="controls">
+          <Button variant="primary" icon="☉" onClick={reset}>Reset to assignment values</Button>
+          <Button variant="ghost" onClick={clear}>Clear all</Button>
+          <div style={{marginLeft:'auto',alignSelf:'center'}}>
+            <Pill tone="cyan">{`${bodies.length} bodies`}</Pill>
+          </div>
+        </div>
+
+        <SectionHead eyebrow="Input · Planetary Longitudes" title="Enter or edit coordinates"/>
+        <InputTable bodies={bodies} onChange={updateBody}/>
+
+        <div className="grid" style={{marginTop:28}}>
+          <div>
+            <SectionHead eyebrow="Output" title="Nakshatra · Pada · Navamsa"/>
+            <ResultTable bodies={bodies}/>
+            <div className="legend">
+              Each nakshatra (13°20′) is ruled by Ketu, Venus, Sun, Moon, Mars, Rahu,
+              Jupiter, Saturn, Mercury — repeating 3×. Navamsa: movable signs start at same sign;
+              fixed at 9<sup>th</sup>; dual at 5<sup>th</sup>. Each pada (3°20′) advances one
+              navamsa sign.
+            </div>
+          </div>
+
+          <div className="chart-wrap">
+            <SectionHead eyebrow="Rāśi Chart" title="South Indian"
+              right={<Pill tone="magenta">{`Lagna: ${bodies[0].sign}`}</Pill>}/>
+            <div className="orbit-stage">
+              <svg className="orbit-svg" viewBox="0 0 600 600">
+                <g className="orbit-group" style={{transformOrigin:'300px 300px'}}>
+                  <circle className="orbit-ring r1" cx="300" cy="300" r="280"/>
+                </g>
+                <g className="orbit-group" style={{transformOrigin:'300px 300px'}}>
+                  <circle className="orbit-ring r2" cx="300" cy="300" r="250"/>
+                  <circle className="orbit-node" cx="550" cy="300" r="3"/>
+                </g>
+                <g className="orbit-group" style={{transformOrigin:'300px 300px'}}>
+                  <circle className="orbit-ring r3" cx="300" cy="300" r="310"/>
+                  <circle className="orbit-node n2" cx="610" cy="300" r="2.5"/>
+                  <circle className="orbit-node n3" cx="300" cy="-10" r="2.5"/>
+                </g>
+              </svg>
+            </div>
+            <div className="chart-inner">
+              <RasiChart bodies={bodies} selectedKey={selectedKey} onSelectBody={setSelectedKey}/>
+            </div>
+            <div className="legend">
+              Houses numbered from Lagna. Planets placed in their Rāśi box.
+              <span style={{color:'var(--glow-magenta)',textShadow:'var(--glow-magenta-md)',fontWeight:700}}> La </span>
+              marks the Ascendant. Click a body to highlight.
+            </div>
+          </div>
+        </div>
+      </div>}
+
+      {tab === 'ref' && <div>
+        <SectionHead eyebrow="Reference" title="Nakshatras & Padas in the Rāśi Cakra"/>
+        <p className="p" style={{maxWidth:'62ch',marginBottom:16}}>
+          Each sign (30°) contains portions of 2–3 nakshatras. Enter a longitude below
+          and the matching pada is highlighted in gold.
+        </p>
+        <LookupBar state={lookup} setState={setLookup} result={lookupResult}/>
+        <ReferenceGrid highlight={highlight}/>
+        <div className="legend" style={{marginTop:18}}>
+          Pada boundaries are shown as degrees <i>within the sign</i> (0°–30°).
+          "<b>P3 6°40′–10°00′</b>" means pada 3 runs from 6°40′ to 10°00′ of that sign.
+          Lord abbreviations: Ke=Ketu, Ve=Venus, Su=Sun, Mo=Moon, Ma=Mars,
+          Ra=Rahu, Ju=Jupiter, Sa=Saturn, Me=Mercury.
+        </div>
+      </div>}
+    </div>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

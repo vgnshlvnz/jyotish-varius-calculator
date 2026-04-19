@@ -1,0 +1,269 @@
+/* ============================================================
+   Jyotish Ārambha — Design Tokens
+   Futuristic cosmic palette + bright astrological symbols.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ---------- COLOR: Deep Space Base ---------- */
+  --void:          #05060d;   /* page bg, deepest night */
+  --space:         #0b0d1a;   /* app shell bg */
+  --nebula:        #131632;   /* raised panel bg */
+  --nebula-2:      #1b1f42;   /* hover / lifted */
+  --orbit:         #272c5a;   /* subtle divider, tile bg */
+  --stardust:      #3a3f7a;   /* active divider / ring */
+
+  /* ---------- COLOR: Foreground ---------- */
+  --fg-1:          #eef1ff;   /* primary text */
+  --fg-2:          #b8bcdf;   /* secondary text */
+  --fg-3:          #7a80b0;   /* muted / captions */
+  --fg-4:          #4c5180;   /* disabled / ghost */
+
+  /* ---------- COLOR: Bright Symbols (the signature) ---------- */
+  --glow-cyan:     #6ff6ff;   /* primary luminous accent — signs, lagna */
+  --glow-magenta:  #ff5de0;   /* secondary accent — active / selected */
+  --glow-gold:     #ffd24b;   /* highlight — nakshatra / pada match */
+  --glow-violet:   #a78bff;   /* tertiary — planets, lords */
+  --glow-lime:     #9dff6f;   /* positive, navamsa */
+  --glow-ember:    #ff8a5b;   /* warning / retrograde */
+
+  /* alpha variants for halos & washes */
+  --cyan-a20:      rgba(111, 246, 255, 0.20);
+  --cyan-a40:      rgba(111, 246, 255, 0.40);
+  --magenta-a20:   rgba(255, 93, 224, 0.20);
+  --gold-a20:      rgba(255, 210, 75, 0.22);
+  --gold-a40:      rgba(255, 210, 75, 0.45);
+  --violet-a20:    rgba(167, 139, 255, 0.22);
+
+  /* ---------- COLOR: Semantic ---------- */
+  --color-bg:           var(--space);
+  --color-surface:      var(--nebula);
+  --color-surface-raised: var(--nebula-2);
+  --color-border:       #232748;
+  --color-border-strong:#3a3f7a;
+  --color-accent:       var(--glow-cyan);
+  --color-accent-2:     var(--glow-magenta);
+  --color-highlight:    var(--glow-gold);
+  --color-danger:       var(--glow-ember);
+  --color-success:      var(--glow-lime);
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font-display:   'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;  /* ceremonial / Sanskrit names */
+  --font-sans:      'Space Grotesk', ui-sans-serif, system-ui, sans-serif;     /* UI / data */
+  --font-mono:      'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace; /* numbers / coords */
+  --font-symbol:    'Space Grotesk', 'Segoe UI Symbol', 'Apple Color Emoji', sans-serif; /* zodiac glyphs */
+
+  /* fluid type scale */
+  --text-2xs:  10px;
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-md:   15px;
+  --text-lg:   18px;
+  --text-xl:   22px;
+  --text-2xl:  30px;
+  --text-3xl:  44px;
+  --text-4xl:  64px;
+  --text-hero: 96px;
+
+  /* line heights */
+  --lh-tight:  1.1;
+  --lh-snug:   1.25;
+  --lh-normal: 1.45;
+
+  /* letter spacing */
+  --ls-tight:    -0.01em;
+  --ls-normal:    0;
+  --ls-wide:      0.04em;
+  --ls-wider:     0.14em;   /* for ALL-CAPS labels */
+  --ls-widest:    0.28em;   /* hero labels */
+
+  /* ---------- SPACING ---------- */
+  --s-0:  0;
+  --s-1:  2px;
+  --s-2:  4px;
+  --s-3:  8px;
+  --s-4:  12px;
+  --s-5:  16px;
+  --s-6:  20px;
+  --s-7:  24px;
+  --s-8:  32px;
+  --s-9:  48px;
+  --s-10: 64px;
+  --s-11: 96px;
+
+  /* ---------- RADII ---------- */
+  --r-xs:  2px;
+  --r-sm:  4px;
+  --r-md:  8px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-full:999px;
+
+  /* ---------- BORDERS ---------- */
+  --bw-hair:   1px;
+  --bw-line:   1.5px;
+  --bw-thick:  2px;
+
+  /* ---------- SHADOWS & GLOWS ---------- */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md:  0 8px 24px -8px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4);
+  --shadow-lg:  0 24px 48px -16px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.5);
+
+  /* signature glows — the futuristic signal */
+  --glow-cyan-sm:  0 0 8px var(--cyan-a40),   0 0 2px var(--cyan-a40);
+  --glow-cyan-md:  0 0 20px var(--cyan-a40),  0 0 4px #6ff6ffcc;
+  --glow-cyan-lg:  0 0 40px #6ff6ff66,        0 0 12px #6ff6ffaa;
+  --glow-magenta-md: 0 0 18px #ff5de066,      0 0 3px #ff5de0cc;
+  --glow-gold-md:  0 0 16px var(--gold-a40),  0 0 3px #ffd24bcc;
+  --glow-violet-md:0 0 16px #a78bff66,        0 0 3px #a78bffcc;
+
+  /* inset highlight for bevels */
+  --inset-top:  inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* ---------- MOTION ---------- */
+  --ease-out:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:    120ms;
+  --dur-med:     220ms;
+  --dur-slow:    420ms;
+
+  /* ---------- LAYOUT ---------- */
+  --z-base:    1;
+  --z-raised:  10;
+  --z-overlay: 100;
+  --z-modal:   1000;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+html, body {
+  background: var(--color-bg);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   SEMANTIC TYPOGRAPHY
+   ============================================================ */
+.h-hero {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-hero);
+  line-height: 0.95;
+  letter-spacing: var(--ls-tight);
+  font-style: italic;
+}
+.h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-3xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+}
+.h2 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-normal);
+}
+.h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  line-height: var(--lh-snug);
+}
+.eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wider);
+  color: var(--glow-cyan);
+}
+.caps {
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wider);
+  font-weight: 600;
+  font-size: var(--text-xs);
+}
+.p, p {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--lh-normal);
+  color: var(--fg-2);
+}
+.mono, code, kbd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-sm);
+  color: var(--fg-1);
+}
+.sanskrit {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+}
+.caption {
+  font-size: var(--text-xs);
+  color: var(--fg-3);
+}
+
+/* ============================================================
+   GLOW TEXT UTILITIES — "bright symbols"
+   ============================================================ */
+.glow-cyan    { color: var(--glow-cyan);    text-shadow: var(--glow-cyan-md); }
+.glow-magenta { color: var(--glow-magenta); text-shadow: var(--glow-magenta-md); }
+.glow-gold    { color: var(--glow-gold);    text-shadow: var(--glow-gold-md); }
+.glow-violet  { color: var(--glow-violet);  text-shadow: var(--glow-violet-md); }
+.glow-lime    { color: var(--glow-lime);    text-shadow: 0 0 12px #9dff6f66; }
+
+.symbol {
+  font-family: var(--font-symbol);
+  font-weight: 400;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* ============================================================
+   SURFACES
+   ============================================================ */
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md), var(--inset-top);
+}
+.surface-raised {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg), var(--inset-top);
+}
+
+/* protection gradient for text over imagery */
+.protection-gradient {
+  background: linear-gradient(180deg, rgba(5,6,13,0) 0%, rgba(5,6,13,0.85) 70%, var(--void) 100%);
+}
+
+/* starfield — subtle background for app surfaces */
+.starfield {
+  background-color: var(--void);
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #ffffff55 50%, transparent),
+    radial-gradient(1px 1px at 70% 80%, #ffffff33 50%, transparent),
+    radial-gradient(1.5px 1.5px at 40% 60%, #ffffff33 50%, transparent),
+    radial-gradient(1px 1px at 85% 25%, #6ff6ff55 50%, transparent),
+    radial-gradient(1px 1px at 15% 85%, #ff5de044 50%, transparent),
+    radial-gradient(1px 1px at 55% 10%, #a78bff55 50%, transparent),
+    radial-gradient(circle at 50% 50%, #131632 0%, #05060d 70%);
+}

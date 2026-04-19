@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jyotish Ārambha — Assignment #10 Calculator</title>
+<style>
+  :root {
+    --border: #444;
+    --bg: #fafafa;
+    --panel: #fff;
+    --accent: #8a0b0b;
+    --muted: #666;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: #222;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { margin: 24px 0 8px; font-size: 16px; color: var(--accent); }
+  .sub { color: var(--muted); margin-bottom: 16px; font-size: 13px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 980px) {
+    .grid { grid-template-columns: 1.4fr 1fr; }
+  }
+
+  table.inputs, table.results {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    font-size: 13px;
+  }
+  table.inputs th, table.inputs td,
+  table.results th, table.results td {
+    border: 1px solid var(--border);
+    padding: 5px 7px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  table.inputs th, table.results th {
+    background: #efe7e7;
+    font-weight: 600;
+  }
+  td input[type=number], td select {
+    width: 100%;
+    padding: 3px;
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* South-Indian Rasi chart */
+  .rasi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    aspect-ratio: 1/1;
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 2px solid #111;
+  }
+  .cell {
+    border: 1px solid #111;
+    padding: 6px;
+    position: relative;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .cell.center {
+    grid-column: 2 / span 2;
+    grid-row: 2 / span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #555;
+    background: #fbf6f6;
+  }
+  .sign {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .house-num {
+    position: absolute;
+    top: 3px;
+    right: 6px;
+    font-size: 10px;
+    color: #0a5;
+    font-weight: 700;
+  }
+  .body {
+    font-weight: 600;
+    color: #111;
+    line-height: 1.2;
+  }
+  .body .deg { color: #666; font-weight: 400; font-size: 10px; margin-left: 3px; }
+  .lagna-mark {
+    color: #8a0b0b;
+    font-weight: 700;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--accent);
+    color: white;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button.ghost { background: #ddd; color: #333; }
+  button:hover { opacity: 0.9; }
+
+  .legend {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  code { background: #f0f0f0; padding: 1px 4px; border-radius: 2px; font-size: 12px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--accent);
+    margin: 16px 0 20px;
+  }
+  .tab {
+    padding: 8px 16px;
+    background: #eee;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    border-radius: 4px 4px 0 0;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Reference grid (Nakshatras in Rasi Chakra) */
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  @media (max-width: 900px) { .ref-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .ref-grid { grid-template-columns: 1fr; } }
+
+  .ref-cell {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .ref-cell h3 {
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: var(--accent);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 3px;
+  }
+  .nak-block { margin-bottom: 6px; }
+  .nak-name {
+    font-weight: 600;
+    font-size: 11px;
+    color: #222;
+  }
+  .nak-lord { color: #888; font-weight: 400; font-size: 10px; }
+  .pada-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-top: 2px;
+  }
+  .pada {
+    background: #f5efef;
+    padding: 2px 3px;
+    font-size: 9px;
+    border-radius: 2px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .pada.match {
+    background: #ffd95e;
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px #8a0b0b inset;
+  }
+  .ref-cell.match-sign {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .pada-count {
+    float: right;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .lookup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  .lookup input, .lookup select {
+    padding: 5px 7px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .lookup input[type=number] { width: 70px; }
+  .lookup .result {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Jyotish Ārambha — Assignment #10</h1>
+  <div class="sub">
+    Calculator for Question 1: Nakshatra, Nakshatra Lord, Pada, Navamsa Sign &
+    Rasi Chart placement. Longitudes are pre-filled from the assignment; edit any row to recompute.
+  </div>
+
+  <div class="tabs" role="tablist">
+    <div class="tab active" data-tab="calc" role="tab">Q1 Calculator</div>
+    <div class="tab" data-tab="ref" role="tab">Nakshatra &amp; Pada Reference</div>
+  </div>
+
+  <div class="panel active" id="panel-calc">
+
+  <div class="controls">
+    <button id="resetBtn" class="ghost" type="button">Reset to assignment values</button>
+    <button id="clearBtn" class="ghost" type="button">Clear all</button>
+  </div>
+
+  <h2>Input — Planetary Longitudes</h2>
+  <table class="inputs" id="inputTable">
+    <thead>
+      <tr>
+        <th>Body</th>
+        <th>Deg</th>
+        <th>Sign</th>
+        <th>Min</th>
+        <th>Sec</th>
+        <th>Decimal Longitude</th>
+      </tr>
+    </thead>
+    <tbody><!-- rows injected --></tbody>
+  </table>
+
+  <div class="grid">
+    <div>
+      <h2>Output — Nakshatra / Pada / Navamsa</h2>
+      <table class="results" id="resultTable">
+        <thead>
+          <tr>
+            <th>Body</th>
+            <th>Longitude</th>
+            <th>Nakshatra</th>
+            <th>Nak. Lord</th>
+            <th>Pada</th>
+            <th>Navamsa Sign</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="legend">
+        Lord rule: each nakshatra (13°20′) is ruled by Ketu, Venus, Sun, Moon, Mars, Rahu,
+        Jupiter, Saturn, Mercury (repeats 3×). Navamsa: movable signs start at same sign;
+        fixed at 9<sup>th</sup>; dual at 5<sup>th</sup>. Each pada (3°20′) advances one
+        navamsa sign.
+      </div>
+    </div>
+
+    <div>
+      <h2>Rasi Chart (South Indian)</h2>
+      <div class="rasi" id="rasiChart"></div>
+      <div class="legend">
+        House numbers are counted from Lagna. Planets are placed into their Rasi (sign) box.
+        <span class="lagna-mark">La</span> marks the Ascendant.
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /panel-calc -->
+
+  <div class="panel" id="panel-ref">
+    <h2>Nakshatras &amp; Padas in the Rasi Chakra</h2>
+    <div class="sub">
+      Each sign (30°) contains portions of 2–3 nakshatras. Enter a longitude below and
+      the matching pada is highlighted in gold.
+    </div>
+
+    <div class="lookup">
+      <label>Longitude:</label>
+      <input type="number" id="lkDeg"  min="0" max="29" step="1"    value="14" />
+      <select id="lkSign">
+        <!-- populated via JS -->
+      </select>
+      <input type="number" id="lkMin"  min="0" max="59" step="1"    value="28" />'
+      <input type="number" id="lkSec"  min="0" max="59.99" step="0.01" value="43.61" />"
+      <div class="result" id="lkResult"></div>
+    </div>
+
+    <div class="ref-grid" id="refGrid"></div>
+
+    <div class="legend" style="margin-top:14px;">
+      Pada boundaries are shown as degrees <i>within the sign</i> (0°–30°).
+      "<b>P3 6°40′–10°00′</b>" means pada 3 runs from 6°40′ to 10°00′ of that sign.
+      Lord abbreviations: Ke=Ketu, Ve=Venus, Su=Sun, Mo=Moon, Ma=Mars, Ra=Rahu,
+      Ju=Jupiter, Sa=Saturn, Me=Mercury.
+    </div>
+  </div><!-- /panel-ref -->
+
+</div>
+
+<script>
+"use strict";
+
+// ---------- Astrology constants ----------
+const SIGNS = [
+  { abbr: "Ar", name: "Aries",       sym: "\u2648" },
+  { abbr: "Ta", name: "Taurus",      sym: "\u2649" },
+  { abbr: "Ge", name: "Gemini",      sym: "\u264A" },
+  { abbr: "Cn", name: "Cancer",      sym: "\u264B" },
+  { abbr: "Le", name: "Leo",         sym: "\u264C" },
+  { abbr: "Vi", name: "Virgo",       sym: "\u264D" },
+  { abbr: "Li", name: "Libra",       sym: "\u264E" },
+  { abbr: "Sc", name: "Scorpio",     sym: "\u264F" },
+  { abbr: "Sg", name: "Sagittarius", sym: "\u2650" },
+  { abbr: "Cp", name: "Capricorn",   sym: "\u2651" },
+  { abbr: "Aq", name: "Aquarius",    sym: "\u2652" },
+  { abbr: "Pi", name: "Pisces",      sym: "\u2653" },
+];
+const SIGN_INDEX = Object.fromEntries(SIGNS.map((s, i) => [s.abbr, i]));
+
+// Movable=0 (Ar,Cn,Li,Cp) → navamsa starts at same sign (offset 0)
+// Fixed  =1 (Ta,Le,Sc,Aq) → starts at 9th sign (offset 8)
+// Dual   =2 (Ge,Vi,Sg,Pi) → starts at 5th sign (offset 4)
+const NAVAMSA_OFFSET = [0, 8, 4, 0, 8, 4, 0, 8, 4, 0, 8, 4];
+
+const NAKSHATRAS = [
+  "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
+  "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni",
+  "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha",
+  "Anuradha", "Jyeshta", "Mula", "Purva Ashadha", "Uttara Ashadha",
+  "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
+  "Uttara Bhadrapada", "Revati",
+];
+// Vimshottari lord sequence: repeats 3×
+const LORD_CYCLE = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
+
+const NAK_LEN = 360 / 27;   // 13°20'
+const PADA_LEN = NAK_LEN / 4; // 3°20'
+
+// ---------- Assignment data ----------
+// Longitudes exactly as given in the PDF.
+const BODIES = [
+  { key: "Lagna",      deg: 9,  sign: "Sg", min: 19, sec: 52.29 },
+  { key: "Sun",        deg: 14, sign: "Ge", min: 28, sec: 43.61 },
+  { key: "Moon",       deg: 19, sign: "Sg", min: 31, sec: 45.25 },
+  { key: "Mars",       deg: 6,  sign: "Ta", min: 58, sec: 6.57  },
+  { key: "Mercury(R)", deg: 2,  sign: "Cn", min: 1,  sec: 24.61 },
+  { key: "Jupiter",    deg: 5,  sign: "Cn", min: 50, sec: 23.77 },
+  { key: "Venus",      deg: 25, sign: "Cn", min: 22, sec: 19.63 },
+  { key: "Saturn",     deg: 19, sign: "Pi", min: 57, sec: 7.83  },
+  { key: "Rahu",       deg: 8,  sign: "Aq", min: 24, sec: 7.57  },
+  { key: "Ketu",       deg: 8,  sign: "Le", min: 24, sec: 7.57  },
+];
+
+// Short symbols shown inside the chart
+const SHORT = {
+  "Lagna": "La", "Sun": "Su", "Moon": "Mo", "Mars": "Ma",
+  "Mercury(R)": "Me(R)", "Jupiter": "Ju", "Venus": "Ve",
+  "Saturn": "Sa", "Rahu": "Ra", "Ketu": "Ke",
+};
+
+// ---------- Calculations ----------
+function dmsToDeg(d, m, s) {
+  return d + m / 60 + s / 3600;
+}
+
+function totalLongitude(body) {
+  const idx = SIGN_INDEX[body.sign];
+  return idx * 30 + dmsToDeg(body.deg, body.min, body.sec);
+}
+
+function calc(body) {
+  const lon = totalLongitude(body);           // 0 .. 360 from Aries 0°
+  const nakIdx = Math.floor(lon / NAK_LEN);    // 0..26
+  const degInNak = lon - nakIdx * NAK_LEN;
+  const padaInNak = Math.floor(degInNak / PADA_LEN); // 0..3
+  const signIdx = SIGN_INDEX[body.sign];
+  const degInSign = dmsToDeg(body.deg, body.min, body.sec);
+  const padaInSign = Math.floor(degInSign / PADA_LEN); // 0..8
+  const navIdx = (signIdx + NAVAMSA_OFFSET[signIdx] + padaInSign) % 12;
+  return {
+    longitude: lon,
+    nakshatra: NAKSHATRAS[nakIdx],
+    nakLord: LORD_CYCLE[nakIdx % 9],
+    pada: padaInNak + 1,
+    navamsaSign: SIGNS[navIdx],
+    signIndex: signIdx,
+    degInSign,
+  };
+}
+
+// ---------- Rendering ----------
+function fmtDeg(x) {
+  const d = Math.floor(x);
+  const mFloat = (x - d) * 60;
+  const m = Math.floor(mFloat);
+  const s = (mFloat - m) * 60;
+  return `${d}° ${m.toString().padStart(2, "0")}' ${s.toFixed(2).padStart(5, "0")}"`;
+}
+
+function buildInputRows() {
+  const tbody = document.querySelector("#inputTable tbody");
+  tbody.innerHTML = "";
+  BODIES.forEach((b, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${b.key}</b></td>
+      <td><input type="number" step="1" min="0" max="29" data-i="${i}" data-f="deg" value="${b.deg}"></td>
+      <td>
+        <select data-i="${i}" data-f="sign">
+          ${SIGNS.map(s => `<option value="${s.abbr}" ${s.abbr === b.sign ? "selected" : ""}>${s.abbr} — ${s.name}</option>`).join("")}
+        </select>
+      </td>
+      <td><input type="number" step="1" min="0" max="59" data-i="${i}" data-f="min" value="${b.min}"></td>
+      <td><input type="number" step="0.01" min="0" max="59.99" data-i="${i}" data-f="sec" value="${b.sec}"></td>
+      <td class="num" data-lon="${i}">${totalLongitude(b).toFixed(4)}°</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.addEventListener("input", e => {
+    const el = e.target;
+    const i = +el.dataset.i;
+    const f = el.dataset.f;
+    if (i == null || !f) return;
+    BODIES[i][f] = f === "sign" ? el.value : parseFloat(el.value || 0);
+    refresh();
+  });
+}
+
+function renderResults(rows) {
+  const tbody = document.querySelector("#resultTable tbody");
+  tbody.innerHTML = rows.map((r, i) => {
+    const b = BODIES[i];
+    return `
+      <tr>
+        <td><b>${b.key}</b></td>
+        <td>${b.deg} ${b.sign} ${b.min}' ${b.sec.toFixed(2)}"</td>
+        <td>${r.nakshatra}</td>
+        <td>${r.nakLord}</td>
+        <td>${r.pada}</td>
+        <td>${r.navamsaSign.name} (${r.navamsaSign.abbr})</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// South Indian chart: fixed sign positions. Mapping grid(row,col) → sign abbr.
+// Layout per assignment PDF:
+// Row 0: Pi  Ar  Ta  Ge
+// Row 1: Aq  .   .   Cn
+// Row 2: Cp  .   .   Le
+// Row 3: Sg  Sc  Li  Vi
+const SI_LAYOUT = [
+  ["Pi","Ar","Ta","Ge"],
+  ["Aq", null, null,"Cn"],
+  ["Cp", null, null,"Le"],
+  ["Sg","Sc","Li","Vi"],
+];
+
+function renderRasi(results) {
+  const el = document.getElementById("rasiChart");
+  el.innerHTML = "";
+  // Collect bodies per sign
+  const bodiesBySign = {};
+  SIGNS.forEach(s => bodiesBySign[s.abbr] = []);
+  BODIES.forEach((b, i) => {
+    const r = results[i];
+    const label = SHORT[b.key] || b.key;
+    const degTxt = `${b.deg}°${b.min.toString().padStart(2,"0")}'`;
+    bodiesBySign[b.sign].push({ label, degTxt, isLagna: b.key === "Lagna" });
+  });
+
+  // Determine Lagna sign for house numbering
+  const lagnaSignIdx = SIGN_INDEX[BODIES[0].sign];
+
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const abbr = SI_LAYOUT[r][c];
+      if (abbr === null) {
+        if (r === 1 && c === 1) {
+          const center = document.createElement("div");
+          center.className = "cell center";
+          center.textContent = "RASI CHART";
+          el.appendChild(center);
+        }
+        continue;
+      }
+      const signIdx = SIGN_INDEX[abbr];
+      const house = ((signIdx - lagnaSignIdx + 12) % 12) + 1;
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      const sign = SIGNS[signIdx];
+      const bodies = bodiesBySign[abbr];
+      const bodyHtml = bodies.map(bd =>
+        `<div class="body ${bd.isLagna ? "lagna-mark" : ""}">${bd.label}<span class="deg">${bd.degTxt}</span></div>`
+      ).join("");
+      cell.innerHTML = `
+        <div class="sign">${sign.sym} ${sign.name}</div>
+        <div class="house-num">H${house}</div>
+        ${bodyHtml}
+      `;
+      el.appendChild(cell);
+    }
+  }
+}
+
+function refresh() {
+  // Update the decimal-longitude column
+  BODIES.forEach((b, i) => {
+    const c = document.querySelector(`td[data-lon="${i}"]`);
+    if (c) c.textContent = totalLongitude(b).toFixed(4) + "°";
+  });
+  const results = BODIES.map(calc);
+  renderResults(results);
+  renderRasi(results);
+}
+
+// ---------- Reset / clear ----------
+const DEFAULTS = JSON.parse(JSON.stringify(BODIES));
+document.getElementById("resetBtn").addEventListener("click", () => {
+  for (let i = 0; i < BODIES.length; i++) Object.assign(BODIES[i], DEFAULTS[i]);
+  buildInputRows();
+  refresh();
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+  BODIES.forEach(b => { b.deg = 0; b.min = 0; b.sec = 0; b.sign = "Ar"; });
+  buildInputRows();
+  refresh();
+});
+
+// ---------- Reference grid (Nakshatras & Padas in Rasi Chakra) ----------
+const LORD_SHORT = {
+  "Ketu":"Ke","Venus":"Ve","Sun":"Su","Moon":"Mo","Mars":"Ma",
+  "Rahu":"Ra","Jupiter":"Ju","Saturn":"Sa","Mercury":"Me",
+};
+
+// Format a degree value (0..30) within a sign as "D°MM'"
+function fmtInSign(x) {
+  // Snap tiny float drift so 3.333.. renders as 3°20'
+  const totalMin = Math.round(x * 60);
+  const d = Math.floor(totalMin / 60);
+  const m = totalMin - d * 60;
+  return `${d}°${m.toString().padStart(2,"0")}'`;
+}
+
+// For a sign index, return array of { nakshatra, lord, padas:[{pada,startInSign,endInSign}] }
+function nakshatrasInSign(signIdx) {
+  const signStart = signIdx * 30;
+  const signEnd   = signStart + 30;
+  const blocks = [];
+  // Iterate padas of all 27 nakshatras that intersect this sign
+  // Each nakshatra = 4 padas; pada k of nakshatra n starts at n*NAK_LEN + k*PADA_LEN
+  let current = null;
+  for (let n = 0; n < 27; n++) {
+    for (let k = 0; k < 4; k++) {
+      const padaStart = n * NAK_LEN + k * PADA_LEN;
+      const padaEnd   = padaStart + PADA_LEN;
+      if (padaEnd <= signStart || padaStart >= signEnd) continue;
+      const inStart = Math.max(padaStart, signStart) - signStart;
+      const inEnd   = Math.min(padaEnd, signEnd) - signStart;
+      if (!current || current.nakIdx !== n) {
+        current = {
+          nakIdx: n,
+          nakshatra: NAKSHATRAS[n],
+          lord: LORD_CYCLE[n % 9],
+          padas: [],
+        };
+        blocks.push(current);
+      }
+      current.padas.push({
+        pada: k + 1,
+        startInSign: inStart,
+        endInSign: inEnd,
+      });
+    }
+  }
+  return blocks;
+}
+
+function renderReferenceGrid(highlight) {
+  const el = document.getElementById("refGrid");
+  el.innerHTML = "";
+  for (let s = 0; s < 12; s++) {
+    const sign = SIGNS[s];
+    const blocks = nakshatrasInSign(s);
+    const isMatchSign = highlight && highlight.signIdx === s;
+    const cell = document.createElement("div");
+    cell.className = "ref-cell" + (isMatchSign ? " match-sign" : "");
+    const blocksHtml = blocks.map(b => {
+      const padaCells = b.padas.map(p => {
+        const matchHere = highlight
+          && highlight.signIdx === s
+          && highlight.nakIdx === b.nakIdx
+          && highlight.pada === p.pada;
+        return `<div class="pada${matchHere ? " match" : ""}">P${p.pada} ${fmtInSign(p.startInSign)}–${fmtInSign(p.endInSign)}</div>`;
+      }).join("");
+      return `
+        <div class="nak-block">
+          <div class="nak-name">${b.nakshatra}
+            <span class="nak-lord">(${LORD_SHORT[b.lord]}/${b.lord})</span>
+            <span class="pada-count">${b.padas.length} pada${b.padas.length > 1 ? "s" : ""}</span>
+          </div>
+          <div class="pada-row">${padaCells}</div>
+        </div>
+      `;
+    }).join("");
+    cell.innerHTML = `<h3>${sign.sym} ${sign.name} (${sign.abbr}) — 0°–30°</h3>${blocksHtml}`;
+    el.appendChild(cell);
+  }
+}
+
+function runLookup() {
+  const deg  = parseFloat(document.getElementById("lkDeg").value)  || 0;
+  const sign = document.getElementById("lkSign").value;
+  const min  = parseFloat(document.getElementById("lkMin").value)  || 0;
+  const sec  = parseFloat(document.getElementById("lkSec").value)  || 0;
+  const body = { deg, sign, min, sec };
+  const r = calc(body);
+  const signIdx = SIGN_INDEX[sign];
+  document.getElementById("lkResult").innerHTML =
+    `${r.nakshatra} (${r.nakLord}) · Pada ${r.pada} · Navamsa: ${r.navamsaSign.name}`;
+
+  // Find which nakshatra-index matches
+  const lon = totalLongitude(body);
+  const nakIdx = Math.floor(lon / NAK_LEN);
+  renderReferenceGrid({ signIdx, nakIdx, pada: r.pada });
+}
+
+function initLookup() {
+  const sel = document.getElementById("lkSign");
+  sel.innerHTML = SIGNS.map(s => `<option value="${s.abbr}">${s.abbr} — ${s.name}</option>`).join("");
+  sel.value = "Ge";
+  ["lkDeg","lkSign","lkMin","lkSec"].forEach(id => {
+    document.getElementById(id).addEventListener("input", runLookup);
+  });
+  runLookup();
+}
+
+// ---------- Tab switching ----------
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("panel-" + t.dataset.tab).classList.add("active");
+  });
+});
+
+// ---------- Boot ----------
+buildInputRows();
+refresh();
+initLookup();
+</script>
+</body>
+</html>

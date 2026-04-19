@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v xdg-open)",
+      "Bash(xdg-open /home/vgnshlvnz/Downloads/assignment-calc/index.html)",
+      "Bash(node *)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(rm -rf /tmp/design-extract)",
+      "Bash(mkdir -p /tmp/design-extract)",
+      "Bash(cp /home/vgnshlvnz/.claude/projects/-home-vgnshlvnz-Downloads-assignment-calc/ff908ab5-b3ec-4c19-b500-ae841e2a78d9/tool-results/webfetch-1776602559257-u1vwgk.bin /tmp/design-extract/design.gz)",
+      "Bash(gunzip /tmp/design-extract/design.gz)",
+      "Read(//tmp/design-extract/**)",
+      "Bash(mv design *)",
+      "Bash(tar -xf design.tar)",
+      "Bash(cp /tmp/design-extract/jyotish-rambha-design-system/project/colors_and_type.css /home/vgnshlvnz/Downloads/assignment-calc/colors_and_type.css)",
+      "Bash(cp /tmp/design-extract/jyotish-rambha-design-system/project/assets/mark.svg /home/vgnshlvnz/Downloads/assignment-calc/assets/mark.svg)",
+      "Bash(cp /tmp/design-extract/jyotish-rambha-design-system/project/assets/logo-horizontal.svg /home/vgnshlvnz/Downloads/assignment-calc/assets/logo-horizontal.svg)",
+      "Bash(cp /tmp/design-extract/jyotish-rambha-design-system/project/assets/icons.js /home/vgnshlvnz/Downloads/assignment-calc/assets/icons.js)",
+      "Bash(cp '/tmp/design-extract/jyotish-rambha-design-system/project/ui_kits/calculator/components/*.jsx' /home/vgnshlvnz/Downloads/assignment-calc/components/)"
+    ]
+  }
+}

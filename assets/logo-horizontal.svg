@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" width="400" height="80">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#6ff6ff"></stop>
+      <stop offset="0.5" stop-color="#a78bff"></stop>
+      <stop offset="1" stop-color="#ff5de0"></stop>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur><feComposite in2="SourceGraphic" operator="over"></feComposite></filter>
+  </defs>
+  
+  <g transform="translate(40,40)">
+    <circle r="26" fill="none" stroke="url(#g1)" stroke-width="1.5" opacity="0.6"></circle>
+    <circle r="18" fill="none" stroke="#6ff6ff" stroke-width="1" opacity="0.35"></circle>
+    <circle r="10" fill="none" stroke="#ff5de0" stroke-width="1" opacity="0.4"></circle>
+    
+    <circle r="5" fill="#ffd24b"></circle>
+    <circle r="5" fill="none" stroke="#ffd24b" stroke-width="0.5" opacity="0.7"></circle>
+    
+    <circle cx="26" cy="0" r="2.5" fill="#6ff6ff"></circle>
+    <circle cx="-12.7" cy="-12.7" r="2" fill="#ff5de0"></circle>
+    <circle cx="-7.07" cy="7.07" r="1.8" fill="#a78bff"></circle>
+  </g>
+  
+  <g transform="translate(90,0)" fill="#eef1ff" font-family="&#39;Cormorant Garamond&#39;, serif">
+    <text x="0" y="36" font-size="30" font-style="italic" font-weight="600" letter-spacing="-0.5">Jyotiṣa</text>
+    <text x="0" y="62" font-size="15" font-family="&#39;Space Grotesk&#39;, sans-serif" fill="#6ff6ff" letter-spacing="4" font-weight="500">ĀRAMBHA</text>
+  </g>
+</svg>
